@@ -1,0 +1,105 @@
+/* -*-c++-*- */
+/**
+ * vsgAudio - VulkanSceneGraph Audio Library
+ * (C) Copyright 2009-2012 by Kenneth Mark Bryden
+ * Copyright 2025 Julien Valentin
+ * based on a fork of:
+ * Osg AL - VulkanSceneGraph Audio Library
+ * Copyright (C) 2004 VRlab, Umeå University
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
+ * Please see COPYING file for special static-link exemption to LGPL.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#ifndef OPENALPP_SOUNDDATA_H
+#define OPENALPP_SOUNDDATA_H 1
+
+#include <vsg/core/Object.h>
+#include <vsg/core/Inherit.h>
+#include <openalpp/Export.h>
+#include <openalpp/Error.h>
+#include <openalpp/AudioBase.h>
+
+#ifdef WIN32
+// Ignore the dll interface warning using std::vector members
+#pragma warning(disable : 4251)
+#endif
+
+
+namespace openalpp {
+
+/**
+    * Base class for sound data.
+    */
+class OPENALPP_API SoundData : public vsg::Inherit<AudioBase, SoundData> {
+protected:
+    /**
+        * Protected class to handle generation/deletion of OpenAL buffers correctly.
+        */
+    class SoundBuffer : public  vsg::Inherit<vsg::Object, SoundBuffer> {
+        ALuint buffername_;
+    protected:
+        virtual ~SoundBuffer();
+
+    public:
+        SoundBuffer() noexcept(false);
+        SoundBuffer(ALuint buffer_id) noexcept(false) { buffername_ = buffer_id; }
+        ALuint getName() {return buffername_;}
+    };
+public:
+    /**
+        * Get the OpenAL name for the buffer.
+        * @return the OpenAL name.
+        */
+    ALuint getAlBuffer() const;
+
+    /**
+        * Constructor.
+        */
+    SoundData() noexcept(false);
+
+
+
+    /**
+        * Copy constructor.
+        */
+    SoundData(const SoundData &sounddata);
+
+    /**
+        * Assignment operator.
+        */
+    SoundData &operator=(const SoundData &sounddata);
+
+protected:
+
+    /**
+        * Destructor.
+        */
+    virtual ~SoundData();
+
+    /**
+        * See class SoundBuffer comment.
+        */
+    vsg::ref_ptr<SoundBuffer> buffer_;
+
+    /**
+        * OpenAL name for the buffer.
+        */
+    //ALuint buffername_;
+};
+
+}
+
+#endif /* OPENALPP_SOUNDDATA_H */

@@ -1,0 +1,31 @@
+# - Config file for the vsgAudio package
+# It defines the following variables
+#  VSGAUDIO_INCLUDE_DIRS - include directories for vsgAudio
+#  VSGAUDIO_LIBRARIES    - libraries to link against
+#  VSGAUDIO_EXECUTABLE   - the bar executable
+
+@PACKAGE_INIT@
+
+# These are IMPORTED targets created by osgWorksLibraryDepends.cmake
+set(VSGAUDIO_LIBRARIES "vsgAudio" )
+#set(OSGWORKS_EXECUTABLE test)
+
+# Compute paths
+if(EXISTS "${PACKAGE_PREFIX_DIR}/CMakeCache.txt")
+    # In build tree
+    include("${PACKAGE_PREFIX_DIR}/lib/vsgAudioBuildTreeSettings.cmake")
+    # Our library dependencies (contains definitions for IMPORTED targets)
+    include("${PACKAGE_PREFIX_DIR}/lib/vsgAudioLibraryDepends.cmake")
+else()
+    set_and_check(VSGAUDIO_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/include")
+    # The vsgAudio targets file.
+    if(EXISTS "${PACKAGE_PREFIX_DIR}/lib/vsgaudio-targets.cmake")
+        include("${PACKAGE_PREFIX_DIR}/lib/vsgaudio-targets.cmake")
+    endif()
+endif()
+
+# The location of the UsevsgAudio.cmake file.
+set(vsgAudio_USE_FILE "${PACKAGE_PREFIX_DIR}/lib/UsevsgAudio.cmake")
+
+set(ENABLE_SUBSYSTEM_OPENAL @ENABLE_SUBSYSTEM_OPENAL@)
+set(ENABLE_SUBSYSTEM_FMOD @ENABLE_SUBSYSTEM_FMOD@)

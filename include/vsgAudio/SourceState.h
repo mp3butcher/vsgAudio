@@ -1,0 +1,4 @@
+#ifndef SOURCESTATE_H
+#define SOURCESTATE_H
+
+#endif // SOURCESTATE_H
