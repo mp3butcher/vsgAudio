@@ -1,11 +1,11 @@
 /* -*-c++-*- */
 /**
- * osgAudio - OpenSceneGraph Audio Library
+ * vsgAudio - OpenSceneGraph Audio Library
  * (C) Copyright 2009-2012 byKenneth Mark Bryden
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Umeå University
+ * Copyright (C) 2004 VRlab, UmeÃ¥ University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,13 +22,13 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#define _USE_MATH_DEFINES 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <iostream>
-#include <osgAudio/Source.h>
-#include <osgAudio/FileStream.h>
-#include <osgAudio/AudioEnvironment.h>
+#include <vsgAudio/Source.h>
+#include <vsgAudio/FileStream.h>
+#include <vsgAudio/AudioEnvironment.h>
 
 #define CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -38,60 +38,61 @@
 
 
 
-using namespace osgAudio;
+using namespace vsgAudio;
 
 
 int main(int argc,char **argv) {
 
-  if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " <ogg-file>" << std::endl;
-    return 0;
-  }
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " <ogg-file>" << std::endl;
+        return 0;
+    }
 
-  try 
+    try
     {
-        osgAudio::AudioEnvironment::instance()->init();
+        vsgAudio::AudioEnvironment::instance()->init();
 
-      osg::ref_ptr<FileStream> fstream = new FileStream(argv[1]);
-      osg::ref_ptr<Source> source = new Source(fstream.get());
+        std::string filename(argv[1]);
+        vsg::ref_ptr<FileStream> fstream = FileStream::create(filename);
+        vsg::ref_ptr<Source> source = Source::create(fstream);
 
-      source->setLooping(true);
-     //   source->play();
+        source->setLooping(true);
+          source->play();
 
-      while(1) {
-          std::cerr << "1. play" << std::endl;
-          std::cerr << "2. stop" << std::endl;
-          std::cerr << "3. rewind" << std::endl;
-          std::cerr << "4. pause" << std::endl;
+        while(1) {
+            std::cerr << "1. play" << std::endl;
+            std::cerr << "2. stop" << std::endl;
+            std::cerr << "3. rewind" << std::endl;
+            std::cerr << "4. pause" << std::endl;
 
-          std::cout << "Press q+return to exit> " << std::endl;
+            std::cout << "Press q+return to exit> " << std::endl;
 
 
-          std::string line;
-          std::getline(std::cin, line, '\n');
-          
+            std::string line;
+            std::getline(std::cin, line, '\n');
 
-          if (line == "1") {
-            source->play();
-          }
-          else if (line == "2") 
-            source->stop();
-          else if (line == "3") 
-            source->seek(0);
-          else if (line=="4")
-            source->pause();
-          else if (line=="q")
-            break;
-          else
-            std::cerr << "'" << line << "' is an invalid choice" << std::endl;
-      }
-      source = 0;
-    } 
-    catch(osgAudio::Error e) 
+
+            if (line == "1") {
+                source->play();
+            }
+            else if (line == "2")
+                source->stop();
+            else if (line == "3")
+                source->seek(0);
+            else if (line=="4")
+                source->pause();
+            else if (line=="q")
+                break;
+            else
+                std::cerr << "'" << line << "' is an invalid choice" << std::endl;
+        }
+        source = 0;
+    }
+    catch(vsgAudio::Error e)
     {
         std::cerr << e << "\n";
-    } 
-    catch(...) 
+    }
+    catch(...)
     {
         std::cerr << "Unknown error!\n";
     }

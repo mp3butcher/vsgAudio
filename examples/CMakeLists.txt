@@ -1,7 +1,7 @@
 IF(0_BUILD_EXAMPLES_VSGAUDIO)
 	FOREACH( myexamplefolder 
 			vsgaudio
-                #	vsgaudiomultiple
+                        vsgaudiomultiple
                 #	vsgaudioocclude
                 #	vsgaudioviewer
 	    )
@@ -10,9 +10,9 @@ IF(0_BUILD_EXAMPLES_VSGAUDIO)
 ENDIF(0_BUILD_EXAMPLES_VSGAUDIO)
 
 IF(0_BUILD_EXAMPLES_VSGAUDIO_LOWLEVEL)
-        #ADD_SUBDIRECTORY(vsgaudio-lowlevel)
+        ADD_SUBDIRECTORY(vsgaudio-lowlevel)
 ENDIF(0_BUILD_EXAMPLES_VSGAUDIO_LOWLEVEL)
 
 IF(0_BUILD_EXAMPLES_OALPP)
-        #ADD_SUBDIRECTORY(openalpp)
+        ADD_SUBDIRECTORY(openalpp)
 ENDIF(0_BUILD_EXAMPLES_OALPP)

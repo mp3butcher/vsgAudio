@@ -1,11 +1,11 @@
 /* -*-c++-*- */
 /**
- * osgAudio - OpenSceneGraph Audio Library
+ * vsgAudio - OpenSceneGraph Audio Library
  * (C) Copyright 2009-2012 byKenneth Mark Bryden
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Umeå University
+ * Copyright (C) 2004 VRlab, UmeÃ¥ University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,55 +23,55 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <osgAudio/Source.h>
-#include <osgAudio/AudioEnvironment.h>
-#include <osgAudio/Sample.h>
+#include <vsgAudio/Source.h>
+#include <vsgAudio/AudioEnvironment.h>
+#include <vsgAudio/Sample.h>
 
 #include <iostream>
 #include <string>
 #include <vector>
 
-using namespace osgAudio;
+using namespace vsgAudio;
 
 // usleep stub
 #if defined(WIN32) && !defined (OPENALPP_WINDOWSSTUFF_H)
 #include <windows.h>
-    inline void usleep( int x ) { Sleep( x /1000 ); };
+inline void usleep( int x ) { Sleep( x /1000 ); };
 #endif // defined(WIN32) && !defined (OPENALPP_WINDOWSSTUFF_H)
 
-int main() 
+int main()
 {
-  osg::ref_ptr<Sample> sample;
+    vsg::ref_ptr<Sample> sample;
 
-  std::cerr << "Loads a sample at the time, plays it for a while, then loads another one etc.." << std::endl;
-  try {
-      osgAudio::AudioEnvironment::instance()->init();
+    std::cerr << "Loads a sample at the time, plays it for a while, then loads another one etc.." << std::endl;
+    try {
+        vsgAudio::AudioEnvironment::instance()->init();
 
-    std::vector<std::string> file_vector;
-    
-    file_vector.push_back("a.wav");
-    file_vector.push_back("high-e.wav");
-    file_vector.push_back("low-e.wav");
+        std::vector<std::string> file_vector;
 
-    osg::ref_ptr<Source> source = new Source;
-    unsigned int delay = 500;
-    for(int i = 0; i < 10; i++) {
-      if (sample.valid()) {
-        source->stop();
-      }
-      std::string file = file_vector[i % file_vector.size()];
-      std::cerr << "Loading and playing " << file << " for " << delay/1000.0 << " seconds" << std::endl;
-      sample = new Sample(file);
-      source->setSound(sample.get());     
-      source->setGain(1);
-      source->setLooping();
-      source->play();
-      usleep(delay*1000); // Wait for delay milliseconds
+        file_vector.push_back("a.wav");
+        file_vector.push_back("high-e.wav");
+        file_vector.push_back("low-e.wav");
+
+        vsg::ref_ptr<Source> source = Source::create();
+        unsigned int delay = 500;
+        for(int i = 0; i < 10; i++) {
+            if (sample.valid()) {
+                source->stop();
+            }
+            std::string file = file_vector[i % file_vector.size()];
+            std::cerr << "Loading and playing " << file << " for " << delay/1000.0 << " seconds" << std::endl;
+            sample = new Sample(file);
+            source->setSound(sample.get());
+            source->setGain(1);
+            source->setLooping();
+            source->play();
+            usleep(delay*1000); // Wait for delay milliseconds
+        }
+    } catch(Error e) {
+        std::cerr << e << "\n";
     }
-  } catch(Error e) {
-    std::cerr << e << "\n";
-  }
 
-  return 0;
+    return 0;
 }
-  
+

@@ -33,6 +33,7 @@
 #include <vsgAudio/SoundState.h>
 #include <vsgAudio/Version.h>
 #include <vsgAudio/SoundNode.h>
+#include <vsgAudio/FileStream.h>
 
 using namespace vsgAudio;
 
@@ -474,6 +475,34 @@ int main( int argc, char **argv )
         vsgAudio::SoundManager::instance()->getEnvironment()->setDopplerFactor(1);
         vsgAudio::SoundManager::instance()->getEnvironment()->setUnitScale(3.28);
 
+        // Toggle looping ambient music
+
+        // Try to find a soundstate named "music"
+        vsg::ref_ptr<SoundState> musicSoundState = vsgAudio::SoundManager::instance()->findSoundState("music");
+        if (!musicSoundState)
+        {
+            // If not found, create a new one
+            musicSoundState = new SoundState("music");
+            // ALlocate a hw source so we can loop it
+            musicSoundState->allocateSource( 10 );
+
+            // Create a new filestream that streams samples from a ogg-file.
+            auto musicStream = vsgAudio::FileStream::create("44100_1chan.ogg");
+
+            // Associate the stream with the sound state
+            musicSoundState->setStream( musicStream );
+            // Make it an ambient (heard everywhere) sound
+            musicSoundState->setAmbient( true );
+            // Loop the sound forever
+            musicSoundState->setLooping( true );
+            // Start playing the music!
+            //musicSoundState->setPlay( true );
+
+            // Add the soundstate to the sound manager so we can find it later on.
+            SoundManager::instance()->addSoundState( musicSoundState );
+        }
+
+        musicSoundState->setPlay( !musicSoundState->isPlaying() );
  /*       // Create ONE (only one, otherwise the transformation of the listener and update for SoundManager will be
         // called several times, which is not catastrophic, but unnecessary)
         // SoundRoot that will make sure the listener is updated and

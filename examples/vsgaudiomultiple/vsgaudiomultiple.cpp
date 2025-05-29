@@ -1,11 +1,11 @@
-/* -*-c++-*- $Id: osgaudiomultiple.cpp */
+/* -*-c++-*- $Id: vsgAudiomultiple.cpp */
 /**
- * osgAudio - OpenSceneGraph Audio Library
+ * vsgAudio - OpenSceneGraph Audio Library
  * (C) Copyright 2009-2012 byKenneth Mark Bryden
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Umeå University
+ * Copyright (C) 2004 VRlab, UmeÃ¥ University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,98 +23,100 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <vsg/io/read.h>
+#include <vsg/utils/Builder.h>
+#include <vsg/utils/CommandLine.h>
+#include <vsg/utils/ComputeBounds.h>
+#include <vsg/app/Trackball.h>
+#include <vsg/app/CloseHandler.h>
+#include <vsg/nodes/StateGroup.h>
 
-#include <osg/DeleteHandler>
-#include <osg/Notify>
-#include <osg/MatrixTransform>
-#include <osg/PositionAttitudeTransform>
-#include <osg/Geometry>
-#include <osg/Geode>
-#include <osg/ShapeDrawable>
-#include <osg/Version>
-#include <osgUtil/Optimizer>
-#include <osgDB/Registry>
-#include <osgDB/ReadFile>
-#include <osgGA/TrackballManipulator>
-#include <osgGA/FlightManipulator>
-#include <osgGA/DriveManipulator>
-#include <osgGA/KeySwitchMatrixManipulator>
-#include <osgViewer/ViewerEventHandlers>
-#include <osgViewer/Viewer>
-
-//#define USE_SOUNDNODE 1
+#define USE_SOUNDNODE 1
 #ifdef USE_SOUNDNODE
-#  include <osgAudio/SoundNode.h>
+#  include <vsgAudio/SoundNode.h>
 #else
-#  include <osgAudio/SoundUpdateCB.h>
+#  include <vsgAudio/SoundUpdateCB.h>
 #endif
-#include <osgAudio/SoundUpdateCB.h>
-#include <osgAudio/SoundRoot.h>
-#include <osgAudio/SoundManager.h>
-#include <osgAudio/SoundState.h>
-#include <osgAudio/Version.h>
+#include <vsgAudio/SoundUpdateCB.h>
+#include <vsgAudio/SoundRoot.h>
+#include <vsgAudio/SoundManager.h>
+#include <vsgAudio/SoundState.h>
+#include <vsgAudio/Version.h>
 
 
-osg::AnimationPath* createAnimationPath(const osg::Vec3& center,float radius,double looptime)
+/*
+vsg::AnimationPath* createAnimationPath(const vsg::vec3& center,float radius,double looptime)
 {
-    // set up the animation path 
-    osg::AnimationPath* animationPath = new osg::AnimationPath;
-    animationPath->setLoopMode(osg::AnimationPath::LOOP);
-    
+    // set up the animation path
+    vsg::AnimationPath* animationPath = new vsg::AnimationPath;
+    animationPath->setLoopMode(vsg::AnimationPath::LOOP);
+
     int numSamples = 40;
     float yaw = 0.0f;
-    float yaw_delta = 2.0f*osg::PI/((float)numSamples-1.0f);
-    float roll = osg::inDegrees(30.0f);
-    
+    float yaw_delta = 2.0f*vsg::PI/((float)numSamples-1.0f);
+    float roll = vsg::inDegrees(30.0f);
+
     double time=0.0f;
     double time_delta = looptime/(double)numSamples;
     for(int i=0;i<numSamples;++i)
     {
-        osg::Vec3 position(center+osg::Vec3(sinf(yaw)*radius,cosf(yaw)*radius,0.0f));
-        osg::Quat rotation(osg::Quat(roll,osg::Vec3(0.0,1.0,0.0))*osg::Quat(-(yaw+osg::inDegrees(90.0f)),osg::Vec3(0.0,0.0,1.0)));
-        
-        animationPath->insert(time,osg::AnimationPath::ControlPoint(position,rotation));
+        vsg::vec3 position(center+vsg::vec3(sinf(yaw)*radius,cosf(yaw)*radius,0.0f));
+        vsg::Quat rotation(vsg::Quat(roll,vsg::vec3(0.0,1.0,0.0))*vsg::Quat(-(yaw+vsg::inDegrees(90.0f)),vsg::vec3(0.0,0.0,1.0)));
+
+        animationPath->insert(time,vsg::AnimationPath::ControlPoint(position,rotation));
 
         yaw += yaw_delta;
         time += time_delta;
     }
-    return animationPath;    
+    return animationPath;
 }
-
-osg::Node* createBase(const osg::Vec3& center,float radius)
+*/
+vsg::ref_ptr<vsg::Node> createBase(const vsg::vec3& center,float radius)
 {
-
+    auto geode = vsg::Group::create();
     int numTilesX = 10;
     int numTilesY = 10;
-    
+
     float width = 2*radius;
     float height = 2*radius;
-    
-    osg::Vec3 v000(center - osg::Vec3(width*0.5f,height*0.5f,0.0f));
-    osg::Vec3 dx(osg::Vec3(width/((float)numTilesX),0.0,0.0f));
-    osg::Vec3 dy(osg::Vec3(0.0f,height/((float)numTilesY),0.0f));
-    
+
+    vsg::vec3 v000(center - vsg::vec3(width*0.5f,height*0.5f,0.0f));
+    vsg::vec3 dx(vsg::vec3(width/((float)numTilesX),0.0,0.0f));
+    vsg::vec3 dy(vsg::vec3(0.0f,height/((float)numTilesY),0.0f));
+
     // fill in vertices for grid, note numTilesX+1 * numTilesY+1...
-    osg::Vec3Array* coords = new osg::Vec3Array;
+    vsg::vec3Array* coords = new vsg::vec3Array(numTilesY*numTilesX);
     int iy;
+    vsg::Builder builder;
+    vsg::GeometryInfo geomInfo;
+    vsg::StateInfo stateInfo;
     for(iy=0;iy<=numTilesY;++iy)
     {
         for(int ix=0;ix<=numTilesX;++ix)
         {
-            coords->push_back(v000+dx*(float)ix+dy*(float)iy);
+
+
+            geomInfo.color = vsg::vec4{1, 1, 1, 1};
+            geomInfo.position= v000+dx*(float)ix+dy*(float)iy;
+            geomInfo.dx = dx;
+            geomInfo.dy = dy;
+
+            auto node = builder.createQuad(geomInfo, stateInfo);
+            auto stateGroup = builder.createStateGroup(stateInfo);
+            geode->addChild(node);
+            //coords->at(ix*numTilesX+ix)=v000+dx*(float)ix+dy*(float)iy;
         }
     }
-    
+
     //Just two colours - black and white.
-    osg::Vec4Array* colors = new osg::Vec4Array;
-    colors->push_back(osg::Vec4(1.0f,1.0f,1.0f,1.0f)); // white
-    colors->push_back(osg::Vec4(0.0f,0.0f,0.0f,1.0f)); // black
+    /*   vsg::vec4Array* colors = new vsg::vec4Array(2);
+    colors->at(0)=vsg::vec4(1.0f,1.0f,1.0f,1.0f); // white
+    colors->at(1)=vsg::vec4(0.0f,0.0f,0.0f,1.0f); // black
     int numColors=colors->size();
-    
-    
+
+
     int numIndicesPerRow=numTilesX+1;
-    osg::UByteArray* coordIndices = new osg::UByteArray; // assumes we are using less than 256 points...
-    osg::UByteArray* colorIndices = new osg::UByteArray;
+    vsg::UByteArray* coordIndices = new vsg::UByteArray; // assumes we are using less than 256 points...
     for(iy=0;iy<numTilesY;++iy)
     {
         for(int ix=0;ix<numTilesX;++ix)
@@ -124,120 +126,128 @@ osg::Node* createBase(const osg::Vec3& center,float radius)
             coordIndices->push_back(ix    +iy*numIndicesPerRow);
             coordIndices->push_back((ix+1)+iy*numIndicesPerRow);
             coordIndices->push_back((ix+1)+(iy+1)*numIndicesPerRow);
-            
+
             // one color per quad
             colorIndices->push_back((ix+iy)%numColors);
         }
     }
-    
 
-    // set up a single normal
-    osg::Vec3Array* normals = new osg::Vec3Array;
-    normals->push_back(osg::Vec3(0.0f,0.0f,1.0f));
-    
-#if OSG_VERSION_GREATER_THAN(3,2,0)
-    deprecated_osg::Geometry* geom = new deprecated_osg::Geometry;
-#else
-    osg::Geometry* geom = new osg::Geometry;
-#endif
-    geom->setVertexArray(coords);
-    geom->setVertexIndices(coordIndices);
-    
-    geom->setColorArray(colors);
-    geom->setColorIndices(colorIndices);
+   */
 
-#if OSG_VERSION_GREATER_THAN(3,2,0)
-    geom->setColorBinding(deprecated_osg::Geometry::BIND_PER_PRIMITIVE);
-#else
-    geom->setColorBinding(osg::Geometry::BIND_PER_PRIMITIVE);
-#endif
-
-    geom->setNormalArray(normals);
-
-#if OSG_VERSION_GREATER_THAN(3,2,0)
-    geom->setNormalBinding(deprecated_osg::Geometry::BIND_OVERALL);
-#else
-    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
-#endif
-
-    geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS,0,coordIndices->size()));
-    
-    osg::Geode* geode = new osg::Geode;
-    geode->addDrawable(geom);
-    
     return geode;
 }
 
-osg::Node* createMovingModel(const osg::Vec3& center, float radius)
+vsgAudio::SoundState* createSoundState(const std::string& file)
+{
+    // Create a sample, load a .wav file.
+    vsg::ref_ptr<vsgAudio::Sample> sample =
+        vsgAudio::SoundManager::instance()->getSample(file.c_str(), false);
+    // Create a named sound state.
+    vsg::ref_ptr<vsgAudio::SoundState> sound_state =  vsgAudio::SoundState::create( file );
+    // Allocate a hardware soundsource to this soundstate (priority 10)
+    sound_state->allocateSource(10, false);
+    // Let the soundstate use the sample we just created
+    sound_state->setSample(sample);
+
+    // Set its gain (volume) to 0.9
+    sound_state->setGain(0.9f);
+
+    sound_state->setReferenceDistance(70);
+
+    // Set its pitch to 1 (normal speed)
+    sound_state->setPitch(1);
+
+    // Make it play
+    sound_state->setPlay(true);
+
+    // The sound should loop over and over again
+    sound_state->setLooping(true);
+
+    // Add the soundstate to the sound manager, so we can find it later on if we want to
+    vsgAudio::SoundManager::instance()->addSoundState(sound_state);
+
+    return sound_state;
+}
+
+vsg::ref_ptr<vsg::Node> createMovingModel(const vsg::vec3& center, float radius)
 {
     float animationLength = 10.0f;
 
-    osg::AnimationPath* animationPath = createAnimationPath(center,radius,animationLength);
+    // vsg::AnimationPath* animationPath = createAnimationPath(center,radius,animationLength);
 
-    osg::Group* model = new osg::Group;
+    auto model = vsg::Group::create();
 
-    osg::Node* glider = osgDB::readNodeFile("glider.osg");
+    const std::string fileName( "Duck.vsgt" );
+    auto options = vsg::Options::create();
+    options->sharedObjects = vsg::SharedObjects::create();
+    options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+    options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
+    vsg::ref_ptr<vsg::Node>glider =vsg::read_cast<vsg::Node>(fileName,options);
+
+    //vsg::Node* glider = osgDB::readNodeFile("glider.osg");
     if (glider)
     {
-        const osg::BoundingSphere& bs = glider->getBound();
+        vsg::ComputeBounds computeBounds;
+        glider->accept(computeBounds);
+        vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max) * 0.5;
+        vsg::dvec3 size(computeBounds.bounds.max-computeBounds.bounds.min);
 
-        osg::BoundingSphere::value_type size = radius/bs.radius()*0.3f;
-        osg::MatrixTransform* positioned = new osg::MatrixTransform;
-        positioned->setDataVariance(osg::Object::STATIC);
-        positioned->setMatrix(osg::Matrix::translate(-bs.center())*
-                                     osg::Matrix::scale(size,size,size)*
-                                     osg::Matrix::rotate(osg::inDegrees(-90.0f),0.0f,0.0f,1.0f));
-    
+        // vsg::BoundingSphere::value_type size = radius/bs.radius()*0.3f;
+        auto positioned =  vsg::MatrixTransform::create();
+        positioned->matrix=(  vsg::translate(-centre)*
+                              vsg::scale(size*0.3)*
+                              vsg::rotate(vsg::PI/180.*(-90.0),0.0,0.0,1.0));
+
         positioned->addChild(glider);
-        
+        model->addChild(positioned);
         // Create a sound node
-        //osg::ref_ptr<osgAudio::SoundNode> sound_node = createSound("bee.wav");
+        vsg::ref_ptr<vsgAudio::SoundNode> sound_node = vsgAudio::SoundNode::create(createSoundState("bee.wav"));
 
         // Add the sound node
-        //positioned->addChild(sound_node.get());
+        positioned->addChild(sound_node);
 
-        osg::PositionAttitudeTransform* xform = new osg::PositionAttitudeTransform;    
-        xform->setUpdateCallback(new osg::AnimationPathCallback(animationPath,0.0,1.0));
+        /*     vsg::PositionAttitudeTransform* xform = new vsg::PositionAttitudeTransform;
+        xform->setUpdateCallback(new vsg::AnimationPathCallback(animationPath,0.0,1.0));
         xform->addChild(positioned);
 
-        model->addChild(xform);
+        model->addChild(xform);*/
     }
- 
-    osg::Node* cessna = osgDB::readNodeFile("cessna.osg");
+
+    vsg::Node* cessna = vsg::read_cast<vsg::Node>("cessna.vsgt");
     if (cessna)
     {
-        const osg::BoundingSphere& bs = cessna->getBound();
+        /*  const vsg::BoundingSphere& bs = cessna->getBound();
 
-        osg::BoundingSphere::value_type size = radius/bs.radius()*0.3f;
-        osg::MatrixTransform* positioned = new osg::MatrixTransform;
-        positioned->setDataVariance(osg::Object::STATIC);
-        positioned->setMatrix(osg::Matrix::translate(-bs.center())*
-                                     osg::Matrix::scale(size,size,size)*
-                                     osg::Matrix::rotate(osg::inDegrees(180.0f),0.0f,0.0f,1.0f));
-    
+        vsg::BoundingSphere::value_type size = radius/bs.radius()*0.3f;
+        vsg::MatrixTransform* positioned = new vsg::MatrixTransform;
+        positioned->setDataVariance(vsg::Object::STATIC);
+        positioned->setMatrix(vsg::Matrix::translate(-bs.center())*
+                              vsg::Matrix::scale(size,size,size)*
+                              vsg::Matrix::rotate(vsg::inDegrees(180.0f),0.0f,0.0f,1.0f));
+
         positioned->addChild(cessna);
-    
-        osg::MatrixTransform* xform = new osg::MatrixTransform;
-        xform->setUpdateCallback(new osg::AnimationPathCallback(animationPath,0.0f,2.0));
+
+        vsg::MatrixTransform* xform = new vsg::MatrixTransform;
+        xform->setUpdateCallback(new vsg::AnimationPathCallback(animationPath,0.0f,2.0));
         xform->addChild(positioned);
 
-        model->addChild(xform);
+        model->addChild(xform);*/
     }
-    
+
     return model;
 }
 
 
-osg::Node* createModel()
+vsg::ref_ptr<vsg::Node> createModel()
 {
-    osg::Vec3 center(0.0f,0.0f,0.0f);
+    vsg::vec3 center(0.0f,0.0f,0.0f);
     float radius = 100.0f;
 
-    osg::Group* root = new osg::Group;
+    auto root = vsg::Group::create();
 
     root->addChild(createMovingModel(center,radius*0.8f));
 
-    root->addChild(createBase(center-osg::Vec3(0.0f,0.0f,radius*0.5),radius));
+    root->addChild(createBase(center-vsg::vec3(0.0f,0.0f,radius*0.5),radius));
 
     return root;
 }
@@ -245,74 +255,118 @@ osg::Node* createModel()
 
 int main( int argc, char **argv )
 {
-    osg::notify(osg::WARN) << "\n\n" << osgAudio::getLibraryName() << " demo" << std::endl;
-    osg::notify(osg::WARN) << "Version: " << osgAudio::getVersion() << "\n\n" << std::endl;
+    vsg::warn( "\n\n" , vsgAudio::getLibraryName() , " demo" );
+    vsg::warn( "Version: " , vsgAudio::getVersion() , "\n\n" );
 
-    osg::notify(osg::WARN) << "Demonstrates how to create and destroy soundsources on the fly" << std::endl;
+    vsg::warn( "Demonstrates how to create and destroy soundsources on the fly" );
 
 
     try {
-        // use an ArgumentParser object to manage the program arguments.
-        osg::ArgumentParser arguments(&argc,argv);
+        // set up defaults and read command line arguments to override them
+        vsg::CommandLine arguments(&argc, argv);
 
-        // set up the usage document, in case we need to print out how to use this program.
-        arguments.getApplicationUsage()->setDescription(arguments.getApplicationName()+" demonstrates the use of the osgAudio toolkit for spatial sound.");
-        arguments.getApplicationUsage()->setCommandLineUsage(arguments.getApplicationName()+" [options] filename ...");
-        arguments.getApplicationUsage()->addCommandLineOption("-h or --help","Display this information");
+        // if we want to redirect std::cout and std::cerr to the vsg::Logger call vsg::Logger::redirect_stdout()
+        if (arguments.read({"--redirect-std", "-r"})) vsg::Logger::instance()->redirect_std();
 
-        // initialize the viewer.
-        osgViewer::Viewer viewer(arguments);
+        // set up vsg::Options to pass in filepaths, ReaderWriters and other IO related options to use when reading and writing files.
+        auto options = vsg::Options::create();
+        options->sharedObjects = vsg::SharedObjects::create();
+        options->fileCache = vsg::getEnv("VSG_FILE_CACHE");
+        options->paths = vsg::getEnvPaths("VSG_FILE_PATH");
 
-        osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> keyswitchManipulator = new osgGA::KeySwitchMatrixManipulator;
-        keyswitchManipulator->addMatrixManipulator( '1', "Trackball", new osgGA::TrackballManipulator() );
-        viewer.setCameraManipulator( keyswitchManipulator.get() );
+#ifdef vsgXchange_all
+        // add vsgXchange's support for reading and writing 3rd party file formats
+        options->add(vsgXchange::all::create());
+#endif
 
+        arguments.read(options);
 
-        // add the window size toggle handler
-        viewer.addEventHandler(new osgViewer::WindowSizeHandler);
+        if (uint32_t numOperationThreads = 0; arguments.read("--ot", numOperationThreads)) options->operationThreads = vsg::OperationThreads::create(numOperationThreads);
 
-        // add the stats handler
-        viewer.addEventHandler(new osgViewer::StatsHandler);
-
-        // add the help handler
-        viewer.addEventHandler(new osgViewer::HelpHandler(arguments.getApplicationUsage()));
-
-        // get details on keyboard and mouse bindings used by the viewer.
-        viewer.getUsage(*arguments.getApplicationUsage());
-
-        // if user request help write it out to cout.
-        if (arguments.read("-h") || arguments.read("--help"))
+        auto windowTraits = vsg::WindowTraits::create();
+        windowTraits->windowTitle = "vsgviewer";
+        windowTraits->debugLayer = arguments.read({"--debug", "-d"});
+        windowTraits->apiDumpLayer = arguments.read({"--api", "-a"});
+        windowTraits->synchronizationLayer = arguments.read("--sync");
+        bool reportAverageFrameRate = arguments.read("--fps");
+        if (arguments.read("--double-buffer")) windowTraits->swapchainPreferences.imageCount = 2;
+        if (arguments.read("--triple-buffer")) windowTraits->swapchainPreferences.imageCount = 3; // default
+        if (arguments.read("--IMMEDIATE")) { windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR; }
+        if (arguments.read("--FIFO")) windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_FIFO_KHR;
+        if (arguments.read("--FIFO_RELAXED")) windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
+        if (arguments.read("--MAILBOX")) windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+        if (arguments.read({"-t", "--test"}))
         {
-            arguments.getApplicationUsage()->write(std::cout);
+            windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+            windowTraits->fullscreen = true;
+            reportAverageFrameRate = true;
+        }
+        if (arguments.read({"--st", "--small-test"}))
+        {
+            windowTraits->swapchainPreferences.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+            windowTraits->width = 192, windowTraits->height = 108;
+            windowTraits->decoration = false;
+            reportAverageFrameRate = true;
+        }
+
+        bool multiThreading = arguments.read("--mt");
+        if (arguments.read({"--fullscreen", "--fs"})) windowTraits->fullscreen = true;
+        if (arguments.read({"--window", "-w"}, windowTraits->width, windowTraits->height)) { windowTraits->fullscreen = false; }
+        if (arguments.read({"--no-frame", "--nf"})) windowTraits->decoration = false;
+        if (arguments.read("--or")) windowTraits->overrideRedirect = true;
+        auto maxTime = arguments.value(std::numeric_limits<double>::max(), "--max-time");
+
+        if (arguments.read("--d32")) windowTraits->depthFormat = VK_FORMAT_D32_SFLOAT;
+        if (arguments.read("--sRGB")) windowTraits->swapchainPreferences.surfaceFormat = {VK_FORMAT_B8G8R8A8_SRGB, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+        if (arguments.read("--RGB")) windowTraits->swapchainPreferences.surfaceFormat = {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+
+        arguments.read("--screen", windowTraits->screenNum);
+        arguments.read("--display", windowTraits->display);
+        arguments.read("--samples", windowTraits->samples);
+        if (int log_level = 0; arguments.read("--log-level", log_level)) vsg::Logger::instance()->level = vsg::Logger::Level(log_level);
+        auto numFrames = arguments.value(-1, "-f");
+        auto pathFilename = arguments.value<vsg::Path>("", "-p");
+        auto loadLevels = arguments.value(0, "--load-levels");
+        auto maxPagedLOD = arguments.value(0, "--maxPagedLOD");
+        auto horizonMountainHeight = arguments.value(0.0, "--hmh");
+        auto nearFarRatio = arguments.value<double>(0.001, "--nfr");
+        if (arguments.read("--rgb")) options->mapRGBtoRGBAHint = false;
+
+        bool depthClamp = arguments.read({"--dc", "--depthClamp"});
+        if (depthClamp)
+        {
+            vsg::info("Enabled depth clamp." );
+            auto deviceFeatures = windowTraits->deviceFeatures = vsg::DeviceFeatures::create();
+            deviceFeatures->get().samplerAnisotropy = VK_TRUE;
+            deviceFeatures->get().depthClamp = VK_TRUE;
+        }
+
+        // create the viewer and assign window(s) to it
+        auto viewer = vsg::Viewer::create();
+        auto window = vsg::Window::create(windowTraits);
+        if (!window)
+        {
+            vsg::info( "Could not create window." );
             return 1;
         }
 
-        // any option left unread are converted into errors to write out later.
-        arguments.reportRemainingOptionsAsUnrecognized();
-        arguments.getApplicationUsage()->addKeyboardMouseBinding("RETURN", "Play a sound");
-
-        // report any errors if they have occured when parsing the program aguments.
-        if (arguments.errors())
-        {
-            arguments.writeErrorMessages(std::cout);
-            return 1;
-        }
+        viewer->addWindow(window);
 
         int num_hw_soundsources = 10;
-        osgAudio::SoundManager::instance()->init(num_hw_soundsources);
-        osgAudio::SoundManager::instance()->getEnvironment()->setDistanceModel(osgAudio::InverseDistance);
-        osgAudio::SoundManager::instance()->getEnvironment()->setDopplerFactor(1);
+        vsgAudio::SoundManager::instance()->init(num_hw_soundsources);
+        vsgAudio::SoundManager::instance()->getEnvironment()->setDistanceModel(vsgAudio::InverseDistance);
+        vsgAudio::SoundManager::instance()->getEnvironment()->setDopplerFactor(1);
 
         // load the nodes from the commandline arguments.
-        osg::Node* model = createModel();
+        auto model = createModel();
         if (!model)
         {
             return 1;
         }
 
         // tilt the scene so the default eye position is looking down on the model.
-        osg::MatrixTransform* rootnode = new osg::MatrixTransform;
-        rootnode->setMatrix(osg::Matrix::rotate(osg::inDegrees(30.0f),1.0f,0.0f,0.0f));
+        vsg::ref_ptr<vsg::MatrixTransform> rootnode = vsg::MatrixTransform::create();
+        rootnode->matrix= vsg::rotate(vsg::PIf*30.0f/180.f,1.0f,0.0f,0.0f);
         rootnode->addChild(model);
 
 
@@ -323,89 +377,108 @@ int main( int argc, char **argv )
         wave_vector.push_back("low-e.wav");
 
 
+        vsg::ref_ptr<vsg::MatrixTransform> sound_transform = vsg::MatrixTransform::create();
+        sound_transform->matrix = vsg::translate(vsg::vec3(0,-100,50));
+        rootnode->addChild(sound_transform);
+        /*
+        // Create a transformation node onto we will attach a soundnode
+        vsg::ref_ptr<vsg::PositionAttitudeTransform> sound_transform = new vsg::PositionAttitudeTransform;
+        rootnode->addChild(sound_transform.get());
+        sound_transform->setPosition(vsg::vec3(0,-100,50));
+*/
+        // Create a sphere so we can "see" the sound
+        vsg::Builder builder;
+        vsg::GeometryInfo geomInfo;
+        vsg::StateInfo stateInfo;
+
+        geomInfo.color = vsg::vec4{1, 1, 1, 1};
+
+
+        auto node = builder.createSphere(geomInfo, stateInfo);
+
+        sound_transform->addChild(node);
+
+#ifdef USE_SOUNDNODE
+        vsg::ref_ptr<vsgAudio::SoundNode> sound_node = vsgAudio::SoundNode::create();
+        sound_transform->addChild(sound_node);
+#else
+        vsg::ref_ptr< vsgAudio::SoundUpdateCB > soundCB = new vsgAudio::SoundUpdateCB;
+        geode->setUpdateCallback( soundCB);
+#endif
+
+
+
+
+        // compute the bounds of the scene graph to help position camera
+        vsg::ComputeBounds computeBounds;
+        rootnode->accept(computeBounds);
+        vsg::dvec3 centre = (computeBounds.bounds.min + computeBounds.bounds.max);
+        centre *= 0.5;
+        double radius = vsg::length(computeBounds.bounds.max - computeBounds.bounds.min);// * 0.6;
+
+        // set up the camera
+        auto lookAt = vsg::LookAt::create(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0), centre, vsg::dvec3(0.0, 0.0, 1.0));
+
+        vsg::ref_ptr<vsg::ProjectionMatrix> perspective;
+        auto ellipsoidModel = model->getRefObject<vsg::EllipsoidModel>("EllipsoidModel");
+        if (ellipsoidModel)
+        {
+            perspective = vsg::EllipsoidPerspective::create(lookAt, ellipsoidModel, 30.0, static_cast<double>(window->extent2D().width) / static_cast<double>(window->extent2D().height), nearFarRatio, horizonMountainHeight);
+        }
+        else
+        {
+            perspective = vsg::Perspective::create(30.0, static_cast<double>(window->extent2D().width) / static_cast<double>(window->extent2D().height), nearFarRatio * radius, radius * 100);
+        }
+
+        auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(window->extent2D()));
         // Create ONE (only one, otherwise the transformation of the listener and update for SoundManager will be
-        // called several times, which is not catastrophic, but unnecessary) 
+        // called several times, which is not catastrophic, but unnecessary)
         // SoundRoot that will make sure the listener is updated and
         // to keep the internal state of the SoundManager updated
         // This could also be done manually, this is just a handy way of doing it.
-        osg::ref_ptr<osgAudio::SoundRoot> sound_root = new osgAudio::SoundRoot;
-        sound_root->setCamera( viewer.getCamera() );
-
+        vsg::ref_ptr<vsgAudio::SoundRoot> sound_root = vsgAudio::SoundRoot::create();
+        sound_root->setCamera( camera);
 
         // The position in the scenegraph of this node is not important.
         // Just as long as the cull traversal should be called after any changes to the SoundManager are made.
-        rootnode->addChild(sound_root.get());
+        rootnode->addChild(sound_root);
 
+        // add close handler to respond to the close window button and pressing escape
+        viewer->addEventHandler(vsg::CloseHandler::create(viewer));
+        viewer->addEventHandler(vsg::Trackball::create( camera, ellipsoidModel));
 
-        // Create a transformation node onto we will attach a soundnode
-        osg::ref_ptr<osg::PositionAttitudeTransform> sound_transform = new osg::PositionAttitudeTransform;
-        rootnode->addChild(sound_transform.get());
-        sound_transform->setPosition(osg::Vec3(0,-100,50));
-
-        // Create a sphere so we can "see" the sound
-        osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-        osg::TessellationHints* hints = new osg::TessellationHints;
-        hints->setDetailRatio(0.5f);
-        geode->addDrawable(new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0.0f,0.0f,0.0f),1),hints));
-        sound_transform->addChild(geode.get());
-#ifdef USE_SOUNDNODE
-        osg::ref_ptr<osgAudio::SoundNode> sound_node = new osgAudio::SoundNode;
-        sound_transform->addChild(sound_node.get());
-#else
-        osg::ref_ptr< osgAudio::SoundUpdateCB > soundCB = new osgAudio::SoundUpdateCB;
-        geode->setUpdateCallback( soundCB.get() );
-#endif
-
-        osg::Timer_t curr, start = osg::Timer::instance()->tick();
+        auto commandGraph = vsg::createCommandGraphForView(window, camera, rootnode);
+        viewer->assignRecordAndSubmitTaskAndPresentation({commandGraph});
+        viewer->compile();
+        viewer->addUpdateOperation(vsgAudio::AudioUpdateOperation::create(lookAt, rootnode), vsg::UpdateOperations::ALL_FRAMES);
+        viewer->start_point() = vsg::clock::now();
+        vsg::clock::time_point curr,start;
         double interval = 2; // 2 seconds interval
         unsigned int n = 0;
-
-        // run optimization over the scene graph
-        osgUtil::Optimizer optimizer;
-        optimizer.optimize(rootnode);
-         
-        // set the scene to render
-        viewer.setSceneData(rootnode);
-
-        // create the windows and run the threads.
-        viewer.realize();
-
-        osgViewer::Viewer::Windows windows;
-        viewer.getWindows(windows);
-        windows[0]->setWindowRectangle( 10, 10, 1024, 768 );
-        windows[0]->setWindowDecoration( true );
-
-        while( !viewer.done() )
+        start = vsg::clock::now();
+        // rendering main loop
+        while (viewer->advanceToNextFrame() && (numFrames < 0 || (numFrames--) > 0) && (viewer->getFrameStamp()->simulationTime < maxTime))
         {
-            // wait for all cull and draw threads to complete.
-            //viewer.sync();
-
-            // update the scene by traversing it with the the update visitor which will
-            // call all node update callbacks and animations.
-            //viewer.update();
-
-            // For every interval seconds, we will remove the current soundstate and create a new one,
-            // with the next sample sounds
-            curr = osg::Timer::instance()->tick();
-            if (osg::Timer::instance()->delta_s(start, curr) > interval) 
+            curr = vsg::clock::now();
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(curr - start).count() * 0.001f > interval)
             {
                 start = curr;
 
                 std::string file = wave_vector[n%wave_vector.size()];
 
-                osgAudio::SoundManager::instance()->removeSoundState(file);
+                vsgAudio::SoundManager::instance()->removeSoundState(file);
 
                 n++;
                 // Create a sample, load a .wav file.
                 file = wave_vector[n%wave_vector.size()];
                 bool add_to_cache = true;
-                osg::ref_ptr<osgAudio::Sample> sample = osgAudio::SoundManager::instance()->getSample(file.c_str(), add_to_cache);
-                osg::notify(osg::WARN) << "Loading sample: " << file << std::endl;
+                vsg::ref_ptr<vsgAudio::Sample> sample = vsgAudio::SoundManager::instance()->getSample(file.c_str(), add_to_cache);
+                vsg::warn("Loading sample: " , file);
 
                 // Create a new soundstate, give it the name of the file we loaded.
-                osg::ref_ptr<osgAudio::SoundState> sound_state = new osgAudio::SoundState(file);
+                vsg::ref_ptr<vsgAudio::SoundState> sound_state = vsgAudio::SoundState::create(file);
                 sound_state->setSample(sample.get());
-                sound_state->setGain(1.0f);
+                sound_state->setGain(2.0f);
                 sound_state->setReferenceDistance(60);
                 //sound_state->setRolloffFactor(3); // FMOD backend doesn't currently support non-realistic rolloff, so this is omitted
                 sound_state->setPlay(true);
@@ -415,30 +488,36 @@ int main( int argc, char **argv )
                 sound_state->allocateSource(10, false);
 
                 // Add the soundstate to the sound manager, so we can find it later on if we want to
-                osgAudio::SoundManager::instance()->addSoundState(sound_state.get());
+                vsgAudio::SoundManager::instance()->addSoundState(sound_state);
 
 #ifdef USE_SOUNDNODE
-                sound_node->setSoundState(sound_state.get());
+                sound_node->setSoundState(sound_state);
 #else
-                soundCB->setSoundState( sound_state.get() );
+                soundCB->setSoundState( sound_state );
 #endif
             }
 
-            // fire off the cull and draw traversals of the scene.
-            viewer.frame();
+            // pass any events into EventHandlers assigned to the Viewer
+            viewer->handleEvents();
+
+            viewer->update();
+
+            viewer->recordAndSubmit();
+
+            viewer->present();
         }
     }
     catch (std::exception& e) {
-        osg::notify(osg::WARN) << "Caught: " << e.what() << std::endl;
+        vsg::warn( "Caught: " , e.what() );
     }
     // Very important to call this before end of main.
     // Otherwise OpenAL will do all sorts of strange things after end of main
     // in the destructor of soundmanager.
-    if (osg::Referenced::getDeleteHandler()) {
-        osg::Referenced::getDeleteHandler()->setNumFramesToRetainObjects(0);
-        osg::Referenced::getDeleteHandler()->flushAll();
-    }
+    /* if (vsg::Referenced::getDeleteHandler()) {
+        vsg::Referenced::getDeleteHandler()->setNumFramesToRetainObjects(0);
+        vsg::Referenced::getDeleteHandler()->flushAll();
+    }*/
 
-    osgAudio::SoundManager::instance()->shutdown();
+    vsgAudio::SoundManager::instance()->shutdown();
     return 0;
 }

@@ -3,6 +3,7 @@ SET(EXE_NAME example_vsgaudio_multiple)
 ADD_EXECUTABLE(
     ${EXE_NAME}
     vsgaudiomultiple.cpp
+    vsgaudiomultiple.cpp
 )
 
 add_definitions( 

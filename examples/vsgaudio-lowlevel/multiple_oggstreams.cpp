@@ -1,11 +1,11 @@
 /* -*-c++-*- */
 /**
- * osgAudio - OpenSceneGraph Audio Library
+ * vsgAudio - OpenSceneGraph Audio Library
  * (C) Copyright 2009-2012 byKenneth Mark Bryden
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Umeå University
+ * Copyright (C) 2004 VRlab, UmeÃ¥ University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -22,61 +22,61 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-#define _USE_MATH_DEFINES 
+#define _USE_MATH_DEFINES
 #include <cmath>
 
 #include <iostream>
-#include <osgAudio/Source.h>
-#include <osgAudio/FileStream.h>
-#include <osgAudio/AudioEnvironment.h>
+#include <vsgAudio/Source.h>
+#include <vsgAudio/FileStream.h>
+#include <vsgAudio/AudioEnvironment.h>
 
 #include <vector>
 
-using namespace osgAudio;
+using namespace vsgAudio;
 
 
 int main(int argc,char **argv) {
 
-  try 
-  {
-      osgAudio::AudioEnvironment::instance()->init();
-    typedef std::vector<osg::ref_ptr<Source> > SourceVector;
-    SourceVector sourceVector;
-    for (int i=0; i < 8; i++)
+    try
     {
-      osg::ref_ptr<FileStream> fstream;
-      int n=0;
-      if (i%2) {
-        fstream = new FileStream("right.ogg");
-        n=20;
-      }
-      else {
-        fstream = new FileStream("left.ogg");
-      }
-      osg::ref_ptr<Source> source = new Source(fstream.get());
+        vsgAudio::AudioEnvironment::instance()->init();
+        typedef std::vector<vsg::ref_ptr<Source> > SourceVector;
+        SourceVector sourceVector;
+        for (int i=0; i < 8; i++)
+        {
+            vsg::ref_ptr<FileStream> fstream;
+            int n=0;
+            if (i%2) {
+                fstream = new FileStream("right.ogg");
+                n=20;
+            }
+            else {
+                fstream = new FileStream("left.ogg");
+            }
+            vsg::ref_ptr<Source> source = Source::create(fstream.get());
 
-      source->setLooping(true);
-      source->setPosition(-10+n+i*1,0,0);
-      sourceVector.push_back(source);
+            source->setLooping(true);
+            source->setPosition(-10+n+i*1,0,0);
+            sourceVector.push_back(source);
+        }
+
+        SourceVector::iterator it;
+        for (it=sourceVector.begin(); it != sourceVector.end(); it++) {
+            (*it)->play();
+        }
+
+        std::cout << "Press return to exit" << std::endl;
+        std::cin.get();
+    }
+    catch(vsgAudio::Error e)
+    {
+        std::cerr << e << "\n";
+    }
+    catch(...)
+    {
+        std::cerr << "Unknown error!\n";
     }
 
-    SourceVector::iterator it;
-    for (it=sourceVector.begin(); it != sourceVector.end(); it++) {
-      (*it)->play();
-    }
 
-    std::cout << "Press return to exit" << std::endl;
-    std::cin.get();
-  } 
-  catch(osgAudio::Error e) 
-  {
-    std::cerr << e << "\n";
-  } 
-  catch(...) 
-  {
-    std::cerr << "Unknown error!\n";
-  }
-
-
-  return 0;
+    return 0;
 }

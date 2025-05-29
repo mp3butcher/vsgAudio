@@ -1,11 +1,11 @@
 /* -*-c++-*- */
 /**
- * osgAudio - OpenSceneGraph Audio Library
+ * vsgAudio - OpenSceneGraph Audio Library
  * (C) Copyright 2009-2012 byKenneth Mark Bryden
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Umeå University
+ * Copyright (C) 2004 VRlab, UmeÃ¥ University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -23,9 +23,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <osgAudio/Source.h>
-#include <osgAudio/FileStream.h>
-#include <osgAudio/AudioEnvironment.h>
+#include <vsgAudio/Source.h>
+#include <vsgAudio/FileStream.h>
+#include <vsgAudio/AudioEnvironment.h>
 
 #include <iostream>
 #include <vector>
@@ -39,36 +39,36 @@
 
 
 
-using namespace osgAudio;
+using namespace vsgAudio;
 
 // usleep stub
 #if defined(WIN32) && !defined (OPENALPP_WINDOWSSTUFF_H)
 #include <windows.h>
-    inline void usleep( int x ) { Sleep( x /1000 ); };
+inline void usleep( int x ) { Sleep( x /1000 ); };
 #endif // defined(WIN32) && !defined (OPENALPP_WINDOWSSTUFF_H)
 
 void WaitForPlaying(Source* source)
 {
-    while (source->getState() != osgAudio::Playing)
+    while (source->getState() != vsgAudio::Playing)
     {
         usleep(1000);
         int checkCount = 0;
         if (checkCount++ > 1000)
         {
-            throw osgAudio::Error("Timed out while waiting for stream to play");
+            throw vsgAudio::Error("Timed out while waiting for stream to play");
         }
     }
 }
 
 void WaitForStopped(Source* source)
 {
-    while (source->getState() != osgAudio::Stopped)
+    while (source->getState() != vsgAudio::Stopped)
     {
         usleep(1000);
         int checkCount = 0;
         if (checkCount++ > 1000)
         {
-            throw osgAudio::Error("Timed out while waiting for stream to stop");
+            throw vsgAudio::Error("Timed out while waiting for stream to stop");
         }
     }
 }
@@ -76,7 +76,7 @@ void WaitForStopped(Source* source)
 void TestSeek()
 {
     std::string numbers("one_ten_b.ogg");
-    
+
 
     std::vector<float> seekPoints;
     seekPoints.push_back(7.0);
@@ -84,9 +84,9 @@ void TestSeek()
     seekPoints.push_back(2.0);
     seekPoints.push_back(3.0);
 
-    try 
+    try
     {
-        osg::ref_ptr<Source> source = new Source;
+        vsg::ref_ptr<Source> source = Source::create();
 
         source->setSound(new FileStream(numbers));
         source->setAmbient();
@@ -108,15 +108,15 @@ void TestSeek()
         WaitForStopped(source.get());
 
     }
-    catch(osgAudio::Error e) 
+    catch(vsgAudio::Error e)
     {
         std::cerr << e << "\n";
-    } 
-    catch(...) 
+    }
+    catch(...)
     {
         std::cerr << "Unknown error!\n";
     }
-    
+
 }
 
 
@@ -129,14 +129,14 @@ int main(int argc,char **argv) {
     std::string file1("test1.ogg");
     std::string file2("test2.ogg");
     std::string file3("test3.ogg");
-    
+
     TestSeek();
     usleep(500000);
-    try 
+    try
     {
-        osgAudio::AudioEnvironment::instance()->init();
+        vsgAudio::AudioEnvironment::instance()->init();
 
-        osg::ref_ptr<Source> source = new Source;
+        vsg::ref_ptr<Source> source = Source::create();
 
         source->setSound(new FileStream(file1));
         source->setAmbient();
@@ -146,11 +146,11 @@ int main(int argc,char **argv) {
         std::cout << "Waiting for first audio file to stop" << std::endl;
 
         WaitForStopped(source.get());
-        
+
         std::cout << "Playing second audio file" << std::endl;
 
         // For now, the source has to be re-created for stable behavior
-        source = new Source; 
+        source = new Source;
 
         source->setSound(new FileStream(file3));
         source->setAmbient();
@@ -199,15 +199,15 @@ int main(int argc,char **argv) {
             WaitForStopped(source.get());
 
         }
-        
+
         std::cout << "Press return to exit" << std::endl;
         std::cin.get();
-    } 
-    catch(osgAudio::Error e) 
+    }
+    catch(vsgAudio::Error e)
     {
         std::cerr << e << "\n";
-    } 
-    catch(...) 
+    }
+    catch(...)
     {
         std::cerr << "Unknown error!\n";
     }
