@@ -115,9 +115,12 @@ namespace openalpp {
 /**
     * Base class for (threaded) updating of stream buffers.
     */
-class OPENALPP_API StreamUpdater : public  vsg::Inherit<vsg::Object, StreamUpdater>,  public std::thread, public std::recursive_mutex{ //public OpenThreads::ReentrantMutex, public osg::Referenced {
+class OPENALPP_API StreamUpdater : public  vsg::Inherit<vsg::Object, StreamUpdater>,   public std::recursive_mutex{ //public OpenThreads::ReentrantMutex, public osg::Referenced {
 
-public:
+public:std::thread *_delegate;
+
+    void start();
+    virtual void run()=0;
     /**
         * Constructor.
         * @param buffer1 and...
@@ -150,13 +153,12 @@ public:
     /**
         * Tell this StreamUpdater thread to wait until some thread call its release
         */
-    void hold() { //m_playEvent.reset();
-    }
+    void hold() ;
 
     /**
         * Release this thread.
         */
-   // void release() { m_playEvent.release(); }
+    void release();
 
     /**
         * Update the stream.
@@ -170,7 +172,7 @@ public:
     /**
         Tell the thread to stop executing, also release it if it is waiting to play.
         */
-    //virtual void stop() { stoprunning_ = true; release(); }
+    virtual void stop() { stoprunning_ = true; release(); }
 
     /**
         @return true if the stop method has been called
@@ -204,7 +206,7 @@ protected:
     /**
         *  Wait for someone to call release. This indicates that we should start playing a stream
         */
-    void waitForPlay() { m_playEvent.wait(); }
+    void waitForPlay() ;
 
     /**
         * Names of the buffers to update.
@@ -242,14 +244,20 @@ protected:
         * Time to sleep in run method, i.e. sleeptime to reduce CPU usage
         */
     int sleepTime_;
-    void sleep();// { std::thread::slmicroSleep(sleepTime_); }
+    void sleep() {
+        using namespace std::chrono_literals;
+        std::this_thread::sleep_for(std::chrono::microseconds(sleepTime_)); }
 
 
     /** Event signaling that source is playing
         *
         */
     std::recursive_mutex threadMutex;
-    Barrier m_playEvent;
+   // Barrier m_playEvent;
+
+    std::mutex playEventMutex;
+    std::condition_variable cv;
+    bool wait4playevent;
 protected:
 
     /**

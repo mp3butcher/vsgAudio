@@ -88,8 +88,8 @@ public:
         * Update will copy the data from the temporary buffer to a sound buffer.
         * @param tempbuffer is a pointer to the buffer
         * @param length is the length - in bytes - of the buffer
-        */
-    OPENALPP_API void CopyInput(void *tempbuffer,int length);
+
+    OPENALPP_API void CopyInput(void *tempbuffer,int length); */
 
     /**
         * Terminates the capturing thread.

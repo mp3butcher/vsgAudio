@@ -46,7 +46,7 @@ using namespace openalpp;
 
 StreamUpdater::StreamUpdater(ALuint buffer1,ALuint buffer2,
                              ALenum format,unsigned int frequency)
-    : vsg::Inherit<vsg::Object, StreamUpdater>(),format_(format), frequency_(frequency), stoprunning_(false), sleepTime_(10),m_playEvent(4)
+    : vsg::Inherit<vsg::Object, StreamUpdater>(),format_(format), frequency_(frequency), stoprunning_(false), sleepTime_(10)//,m_playEvent(4)
 {
     buffers_[0]=buffer1;
     buffers_[1]=buffer2;
@@ -55,13 +55,37 @@ StreamUpdater::StreamUpdater(ALuint buffer1,ALuint buffer2,
     //m_playEvent.reset();
 
 }
+void StreamUpdater::release() {
+    std::lock_guard g(playEventMutex);
+    wait4playevent=false;
+    cv.notify_all();
 
+    //    m_playEvent.release();
+}
+void StreamUpdater::start(){
+    _delegate = new std::thread( [&](){run();});
+    sleep();
+
+}
+void StreamUpdater::hold() { //m_playEvent.reset();
+    std::unique_lock g(playEventMutex);
+    if(!wait4playevent)return;
+    wait4playevent=true;
+    cv.wait(g,[&]{
+        return !wait4playevent;});
+}
+void StreamUpdater::waitForPlay() {
+    std::unique_lock g(playEventMutex);
+    if(!wait4playevent)return;
+    wait4playevent=true;
+    cv.wait(g,[&]{ return !wait4playevent;});
+}
 StreamUpdater::~StreamUpdater() {
     runmutex_.lock();
     //stop();
     runmutex_.unlock();
 
-    //release();
+    release();
 
     //cancel();
 
@@ -91,11 +115,13 @@ void StreamUpdater::addSource(ALuint sourcename) {
     alSourceStop(sourcename);
     newsources_.push_back(sourcename);
     if(!sources_.size()) {
-       // if (!isRunning()) {
-       //     start(); // Now when we have added a source, start the thread
-       // }
+        if (!_delegate){//isRunning()) {
+            start(); // Now when we have added a source, start the thread
+
+            //
+        }
     }
-   // release();
+   release();
 }
 
 void StreamUpdater::removeSource(ALuint sourcename) {
@@ -219,8 +245,10 @@ bool StreamUpdater::update(void *buffer, unsigned int length)
             {
                 LEAVE_CRITICAL;
                 //YieldCurrentThread();
+                std::this_thread::yield();
                 ENTER_CRITICAL;
-                //OpenThreads::Thread::microSleep(1);
+
+                std::this_thread::sleep_for(std::chrono::microseconds(1));
                 alGetSourceiv(sources_[0], AL_SOURCE_STATE, &state);
             }
         }
@@ -303,11 +331,13 @@ bool StreamUpdater::update(void *buffer, unsigned int length)
                 ALCHECKERROR();
                 for(unsigned int i=0;i<sources_.size();i++)
                     alSourceQueueBuffers(sources_[i],1,&albuffer);
+                std::this_thread::yield();
                // YieldCurrentThread();
             } else {
                 LEAVE_CRITICAL;
+                std::this_thread::yield();
                // YieldCurrentThread();
-               // OpenThreads::Thread::microSleep(1000*10);
+                std::this_thread::sleep_for(std::chrono::microseconds(1000*10));
                 ENTER_CRITICAL;
                 // Not sure if this is necessary, but just in case...
                 if(removesources_.size()) {
@@ -331,5 +361,6 @@ bool StreamUpdater::update(void *buffer, unsigned int length)
 
 void StreamUpdater::cancelCleanup() {
     std::cerr << "StreamUpdater::cancelCleanup: Should probably not delete this" << std::endl;
-    delete this;
+    if(_delegate)
+       delete _delegate;
 }

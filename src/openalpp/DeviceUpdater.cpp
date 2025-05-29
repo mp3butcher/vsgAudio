@@ -130,7 +130,8 @@ void DeviceUpdater::run() {
             leave();
         }
         //YieldCurrentThread();
-        //OpenThreads::Thread::microSleep(10*1000);
+        std::this_thread::yield();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         std::cerr << " capturing data " << std::endl;
 
     } while(!shouldStop() && !done);
