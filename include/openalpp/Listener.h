@@ -5,7 +5,7 @@
  * (programming by Chris 'Xenon' Hanson, AlphaPixel, LLC xenon at alphapixel.com)
  * based on a fork of:
  * Osg AL - OpenSceneGraph Audio Library
- * Copyright (C) 2004 VRlab, Ume� University
+ * Copyright (C) 2004 VRlab, Umeå University
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

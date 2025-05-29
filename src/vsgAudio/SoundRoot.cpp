@@ -78,26 +78,22 @@ SoundRoot & SoundRoot::operator=(const SoundRoot &node)
     return *this;
 }
 
-
-
 SoundRoot::SoundRoot(const SoundRoot &copy, const vsg::CopyOp &copyop)
-    : vsg::Node( copy, copyop )
+    : vsg::Inherit<vsg::Node, SoundRoot>( copy, copyop )
 {
     *this = copy;
 }
 
-
-void
-SoundRoot::setCamera( vsg::Camera* cam )
+void SoundRoot::setCamera( vsg::Camera* cam )
 {
    // _camera = cam;
 }
-const vsg::Camera*
-SoundRoot::getCamera() const
+
+const vsg::Camera* SoundRoot::getCamera() const
 {
     return(nullptr);// _camera.get() );
 }
-
+/// Deffered operations
 void opDeferredDeleteAudio::run()
 {
     if(_frameDelay <= 0)

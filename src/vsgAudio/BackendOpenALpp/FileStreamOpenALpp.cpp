@@ -31,7 +31,7 @@ using namespace vsgAudio;
 
 FileStream::FileStream(const std::string& filename,const int buffersize)
     noexcept(false)
-    : Stream(0) {
+    : vsg::Inherit<vsgAudio::Stream, FileStream>(0) {
     try {
         _openalppStream = new openalpp::FileStream (filename, buffersize);
     }
@@ -41,7 +41,7 @@ FileStream::FileStream(const std::string& filename,const int buffersize)
 }
 
 FileStream::FileStream(const FileStream &stream)
-    : Stream(0) {
+    : vsg::Inherit<vsgAudio::Stream, FileStream>(0) {
     // static cast to our derived subclass.
     // Cast could only fail if everything were amiss,
     // so dynamic_cast isn't an advantage here.

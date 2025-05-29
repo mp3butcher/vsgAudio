@@ -44,7 +44,7 @@ namespace vsgAudio
 {
 class VSGAUDIO_EXPORT  AudioUpdateOperation : public vsg::Inherit<vsg::Operation, AudioUpdateOperation> {
 public:
-    AudioUpdateOperation(vsg::ref_ptr<vsg::LookAt> &p, vsg::ref_ptr<vsg::Node> &scene): _worldtrans(p),_scene(scene){};
+    AudioUpdateOperation(vsg::ref_ptr<vsg::LookAt> &p, vsg::ref_ptr<vsg::Node> scene): _worldtrans(p),_scene(scene){};
 
     vsg::clock::time_point _last_time;
     void run() override;
@@ -61,7 +61,7 @@ protected:
     The cull traversal for this node should be called after any changes are made to the SoundManager (added
     SoundState events or such).
     */
-class VSGAUDIO_EXPORT SoundRoot: public vsg::Node {
+class VSGAUDIO_EXPORT SoundRoot: public vsg::Inherit<vsg::Node, SoundRoot> {
 public:
     /// Default constructor
     SoundRoot();

@@ -40,7 +40,7 @@ namespace vsgAudio
     It is based on the Adapter Design pattern.
     */
 
-class VSGAUDIO_EXPORT FileStream : public vsgAudio::Stream {
+class VSGAUDIO_EXPORT FileStream : public vsg::Inherit<vsgAudio::Stream, FileStream> {
 public:
     /**
         * Constructor. A FileError will be thrown if the file can't be opened or

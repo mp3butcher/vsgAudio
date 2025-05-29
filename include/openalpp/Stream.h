@@ -69,7 +69,7 @@ public:
     Stream &operator=(const Stream &stream);
 
 
-    void prepareForDeletion() {updater_->join ();}//std::terminate(*updater_);}//_->cancel();}
+    void prepareForDeletion() {updater_->_delegate->join ();}//std::terminate(*updater_);}//_->cancel();}
 
     /**
         * Start recording.
