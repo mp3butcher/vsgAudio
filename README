@@ -1,87 +1,53 @@
-vsgAudio
+# vsgAudio
 vsgAudio is an VulkanSceneGraph nodekit that wraps OpenAL and FMOD to enable sound toolkits in VSG. The vsgAudio library is the result of collaborative work between Ames Lab, ARDEC, Chris Hanson (Alpha Pixel, LLC), and Paul Martz (Skew Matrix Software LLC). It's used as part of the VE-Suite project. vsgAudio is open source and available under the GNU LGPL v2.1 software license.
 
-Features
+## Features
 vsgAudio supports a compile-time selectable audio back end, which determines support for speaker configurations and specific audio file formats. Common speaker configurations (stereo, 5.1 surround) and file formats (.wav) are supported by both the OpenAL and FMOD back ends (within the limits of OpenAL and FMOD).
 
-Libraries
+### Libraries
 The vsgAudio library Includes the following features:
 
-Compile-time switchable audio back ends (OpenAL and FMOD currently supported).
-Streaming audio.
-Positionable listener and sound sources.
-Ambient sounds and sound occlusion.
-Attenuation and Doppler shifting.
-Plugins
+- Compile-time switchable audio back ends (OpenAL and FMOD currently supported).
+
+- Streaming audio.
+
+- Positionable listener and sound sources.
+
+- Ambient sounds and sound occlusion.
+
+- Attenuation and Doppler shifting.
+
+### Plugins
 osgdb_vsgAudio Dot OSG file format support for the nodes and objects in the vsgAudio library.
 
-Examples
+### Examples
 The project contains a small collection of example programs to demonstrate use of many of vsgAudio's features.
 
-Tests
+### Tests
 The project contains several test programs to ensure correct functionality. Some test programs are specific to the OpenAL/OpenAL++ backend, but equivalent non-backend-specific tests also are included.
 
-Building
-See the Installation page.
+## Dependencies
 
-Support
-For support requests beyond issuing bugs through google code please contact Skew Matrix Software, LLC.
-
-Contribute
-All contributions are welcome and will be considered for inclusion in the project. Please contribute any enhancements or bug fixes by opening an issue and use the Contribution from user issue template. Create and attach a compressed patch file containing your changes.
-
-
-/**
- * VulkanSceneGraph Audio Library, vsgAudio
- * Original osgAL, Copyright (C) 2004 VRlab, Umeå University
- * Copyright (C) 2010 Chris Hanson, AlphaPixel, LLC
- *
- * vsgAudio requires all of the following libraries:
- *              VulkanSceneGraph (https://vsg-dev.github.io/vsg-dev.io/),
- *
- * vsgAudio requires one of the following libraries:
- *              OpenAL++ http://sourceforge.net/projects/alpp/
- *                OpenAL++ dependencies:
- *                  OpenAL http://connect.creativelabs.com/openal/default.aspx
- *                  freeALUT http://connect.creativelabs.com/openal/Downloads/Forms/AllItems.aspx?RootFolder=/openal/Downloads/ALUT
- *                  OggVorbis (libogg, libvorbis) http://xiph.org/downloads/
- *              FMOD Ex (no dependencies) http://www.fmod.org/
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
- */
-
-VulkanSceneGraph Audio Library - vsgAudio is a small library for adding 3D sound support to the
-open source scenegraph VulkanSceneGraph.
-
-By adding a SoundNode to the scene a sound can be made following the transformation of the parents.
-
-
-Dependencies:
-
-VulkanSceneGraph Currently tested with 1.1.1 and later, should work with
-earlier versions too.
+vsgAudio requires all of the following libraries:
+-  VulkanSceneGraph (https://vsg-dev.github.io/vsg-dev.io/),
+-  OpenAL++ http://sourceforge.net/projects/alpp/
+-  OpenAL++ dependencies:
+-  OpenAL http://connect.creativelabs.com/openal/default.aspx
+-  freeALUT http://connect.creativelabs.com/openal/Downloads/Forms/AllItems.aspx?RootFolder=/openal/Downloads/ALUT
+-  OggVorbis (libogg, libvorbis) http://xiph.org/downloads/
+-  FMOD Ex (no dependencies) http://www.fmod.org/ (optional)
 
 One of the two backends:
 
-FMOD Backend Dependencies
+1. FMOD Backend Dependencies
+
 FMOD Ex Programmers API (tested with Version: 4.28.07)
-http://www.fmod.org/index.php/download#FMODExProgrammersAPI
+https://www.fmod.com/download
 The fmodex.dll will need to present at runtime.
 
 
-OpenAL Backend
+2. OpenAL Backend
+
 OpenAL 1.1 SDK and ALUT are needed when compiling:
 from http://connect.creativelabs.com/openal/Downloads/Forms/AllItems.aspx
 http://connect.creativelabs.com/openal/Downloads/OpenAL11CoreSDK.zip
@@ -96,13 +62,24 @@ OpenAL runtime distribution must be installed at runtime:
 from http://connect.creativelabs.com/openal/Downloads/Forms/AllItems.aspx
 oalinst	(Summer 2009 Version 2.0.7.0, http://connect.creativelabs.com/openal/Downloads/oalinst.zip  
 
+## Building
 
-Build under Linux:
+CMake settings:
+All the boolean user-controlled options are prefixed with 0_ to force CMake to sort them
+to the top of the list. One of either 0_ENABLE_SUBSYSTEM_OPENAL or 0_ENABLE_SUBSYSTEM_FMOD
+should be checked, but not both.
+0_BUILD_EXAMPLES_vsgAudio builds the high-level OSG-integrated demo examples and is recommended.
+0_BUILD_EXAMPLES_vsgAudio_LOWLEVEL builds the low-level non-OSG-dependent examples that mimic the
+  original OpenAL++ low-level examples, but use the vsgAudio abstraction layer. Recommended.
+0_BUILD_EXAMPLES_OPENALPP builds the original low-level non-OSG-dependent examples that use the
+  OpenAL++ API directly and not the vsgAudio abstraction layer. These will only build if you compile
+  with the OpenAL++ backend enabled. Recommended if you build with OpenAL++
 
-Untested. CMake files should be portable to Linux.
+### Build under Linux:
 
+`sudo apt install libvorbis-dev libogg-dev libopenal-dev libalut-dev `
 
-Build under Windows:
+### Build under Windows:
 
 OpenAL Audio subsystem:
 Due to missing version information in the OpenAL header files,
@@ -124,28 +101,44 @@ Navigate to the vsgAudio folder within CMake and
 configure all necessary paths, then generate build files for your development tools.
 
 
-CMake settings:
-All the boolean user-controlled options are prefixed with 0_ to force CMake to sort them
-to the top of the list. One of either 0_ENABLE_SUBSYSTEM_OPENAL or 0_ENABLE_SUBSYSTEM_FMOD
-should be checked, but not both.
-0_BUILD_EXAMPLES_vsgAudio builds the high-level OSG-integrated demo examples and is recommended.
-0_BUILD_EXAMPLES_vsgAudio_LOWLEVEL builds the low-level non-OSG-dependent examples that mimic the
-  original OpenAL++ low-level examples, but use the vsgAudio abstraction layer. Recommended.
-0_BUILD_EXAMPLES_OPENALPP builds the original low-level non-OSG-dependent examples that use the
-  OpenAL++ API directly and not the vsgAudio abstraction layer. These will only build if you compile
-  with the OpenAL++ backend enabled. Recommended if you build with OpenAL++
+## Support
+For support requests beyond issuing bugs through github issue tracker
+
+## Contribute
+All contributions are welcome and will be considered for inclusion in the project. Please contribute any enhancements or bug fixes by opening an issue and use the Contribution from user issue template. Create and attach a compressed patch file containing your changes.
+
+VulkanSceneGraph Currently tested with 1.1.1 and later, should work with
+earlier versions too.
 
 Unimplemented:
 Audio recording, live audio input streams, and grouped audio sources are unimplemented in FMOD. Some
 more esoteric settings (such as reverb) may not be implemented in FMOD if a mapping between the
 original functionality and FMOD's API couldn't be found.
 
-Testing:
+### Testing:
   If you are building for OpenAL++, first test the OpenAL++ low-level examples (example_oalpp_*).
   If you are using FMOD, or if that step passes, then test the vsgAudio low-level example/demo
   programs (example_vsgAudiolow_*). When those run ok, try the vsgAudio high-level OSG-integrated
   examples (example_vsgAudio_*).
 
-Contact:
-Chris 'Xenon' Hanson, AlphaPixel, LLC. Xenon@alphapixel.com
 
+### Licence:
+
+ VulkanSceneGraph Audio Library, vsgAudio
+ Copyright (C) 2025 Julien Valentin
+ tribute to osgAudio Copyright (C) 2010 Chris Hanson, AlphaPixel, LLC
+ tribute to osgAL, Copyright (C) 2004 VRlab, Umeå University
+
+  This library is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2.1 of the License, or (at your option) any later version.
+ 
+  This library is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+ 
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
